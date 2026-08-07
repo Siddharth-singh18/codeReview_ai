@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import { FilesModule } from './files/files.module';
 import { AIProvidersModule } from './ai-providers/ai-providers.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
@@ -20,6 +21,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     ProjectsModule,
     FilesModule,
     AIProvidersModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [
