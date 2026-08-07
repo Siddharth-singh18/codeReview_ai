@@ -12,6 +12,8 @@ import { ReviewTriggerPanel } from '@/features/reviews/components/ReviewTriggerP
 import { IssueCard } from '@/features/reviews/components/IssueCard';
 import { ReviewHistoryList } from '@/features/reviews/components/ReviewHistoryList';
 import { CodeChatView } from '@/features/chat/components/CodeChatView';
+import { DocGeneratorModal } from '@/features/tools/components/DocGeneratorModal';
+import { TechDebtScannerModal } from '@/features/tools/components/TechDebtScannerModal';
 import { apiRequest } from '@/lib/api';
 import Link from 'next/link';
 
@@ -21,6 +23,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'explorer' | 'reviews' | 'chat'>('explorer');
+
+  // Tools Modals
+  const [docModalOpen, setDocModalOpen] = useState(false);
+  const [techDebtModalOpen, setTechDebtModalOpen] = useState(false);
 
   // File explorer states
   const [fileTree, setFileTree] = useState<FileTreeNode[]>([]);
@@ -172,38 +178,57 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <p className="text-xs text-slate-400 mt-1">{project.description || 'No description provided.'}</p>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex items-center bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">
-            <button
-              onClick={() => setActiveTab('explorer')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-                activeTab === 'explorer'
-                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              📂 Code Explorer ({fileTree.length > 0 ? fileTree.length : project._count?.files || 0})
-            </button>
-            <button
-              onClick={() => setActiveTab('reviews')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-                activeTab === 'reviews'
-                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              🔍 AI Reviews ({reviews.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('chat')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
-                activeTab === 'chat'
-                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              💬 Code Chat
-            </button>
+          {/* Action Tools & Tabs */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setDocModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/20 text-xs font-medium transition cursor-pointer flex items-center space-x-1"
+              >
+                <span>📚</span>
+                <span>Generate Docs</span>
+              </button>
+              <button
+                onClick={() => setTechDebtModalOpen(true)}
+                className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 text-xs font-medium transition cursor-pointer flex items-center space-x-1"
+              >
+                <span>🕸️</span>
+                <span>Tech Debt Radar</span>
+              </button>
+            </div>
+
+            <div className="flex items-center bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">
+              <button
+                onClick={() => setActiveTab('explorer')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+                  activeTab === 'explorer'
+                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                📂 Code Explorer ({fileTree.length > 0 ? fileTree.length : project._count?.files || 0})
+              </button>
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+                  activeTab === 'reviews'
+                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                🔍 AI Reviews ({reviews.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer ${
+                  activeTab === 'chat'
+                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                💬 Code Chat
+              </button>
+            </div>
           </div>
         </div>
 
@@ -344,6 +369,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           <CodeChatView projectId={project.id} />
         )}
       </main>
+
+      {/* Tools Modals */}
+      <DocGeneratorModal
+        isOpen={docModalOpen}
+        onClose={() => setDocModalOpen(false)}
+        projectId={project.id}
+      />
+
+      <TechDebtScannerModal
+        isOpen={techDebtModalOpen}
+        onClose={() => setTechDebtModalOpen(false)}
+        projectId={project.id}
+      />
     </div>
   );
 }
