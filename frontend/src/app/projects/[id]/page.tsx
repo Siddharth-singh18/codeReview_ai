@@ -11,6 +11,7 @@ import { Review } from '@/features/reviews/types';
 import { ReviewTriggerPanel } from '@/features/reviews/components/ReviewTriggerPanel';
 import { IssueCard } from '@/features/reviews/components/IssueCard';
 import { ReviewHistoryList } from '@/features/reviews/components/ReviewHistoryList';
+import { CodeChatView } from '@/features/chat/components/CodeChatView';
 import { apiRequest } from '@/lib/api';
 import Link from 'next/link';
 
@@ -201,7 +202,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              💬 Code Chat ({project._count?.chatSessions || 0})
+              💬 Code Chat
             </button>
           </div>
         </div>
@@ -273,7 +274,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column: Historical Review List */}
               <div className="lg:col-span-1">
                 <ReviewHistoryList
                   reviews={reviews}
@@ -285,7 +285,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                 />
               </div>
 
-              {/* Right Column: Active Selected Review Details */}
               <div className="lg:col-span-2">
                 {activeReview ? (
                   <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-6">
@@ -342,15 +341,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         )}
 
         {activeTab === 'chat' && (
-          <div className="glass-panel p-8 rounded-2xl border border-slate-800 min-h-[400px]">
-            <div className="text-center py-12 space-y-3">
-              <div className="text-4xl">🤖</div>
-              <h3 className="text-base font-semibold text-white">Code Chat Module Shell</h3>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
-                Contextual codebase chat interface grounded in repository files will be wired here in Phase 7.
-              </p>
-            </div>
-          </div>
+          <CodeChatView projectId={project.id} />
         )}
       </main>
     </div>

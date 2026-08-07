@@ -9,6 +9,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { FilesModule } from './files/files.module';
 import { AIProvidersModule } from './ai-providers/ai-providers.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { ChatModule } from './chat/chat.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
@@ -22,6 +23,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     FilesModule,
     AIProvidersModule,
     ReviewsModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [
