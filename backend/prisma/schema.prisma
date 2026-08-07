@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ProviderType {
+  OPENAI
+  LM_STUDIO
+  OLLAMA
+  OPENROUTER
+  GENERIC
+}
+
+enum ReviewScope {
+  FILE
+  MULTI_FILE
+  PROJECT
+}
+
+enum TemplateType {
+  SECURITY
+  PERFORMANCE
+  QUALITY
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+model User {
+  id                 String              @id @default(uuid())
+  email              String              @unique
+  passwordHash       String
+  createdAt          DateTime            @default(now())
+  projects           Project[]
+  aiProviderConfigs  AIProviderConfig[]
+  chatSessions       ChatSession[]
+}
+
+model Project {
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  createdAt    DateTime      @default(now())
+  files        File[]
+  reviews      Review[]
+  chatSessions ChatSession[]
+}
+
+model File {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  path      String
+  content   String
+  language  String
+  size      Int
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+}
+
+model AIProviderConfig {
+  id              String       @id @default(uuid())
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  baseUrl         String
+  apiKeyEncrypted String
+  modelName       String
+  providerType    ProviderType @default(OPENAI)
+  createdAt       DateTime     @default(now())
+
+  @@index([userId])
+}
+
+model Review {
+  id           String       @id @default(uuid())
+  projectId    String
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scope        ReviewScope  @default(PROJECT)
+  templateType TemplateType @default(QUALITY)
+  summary      String
+  issues       Json         // Array of { title, description, severity, filePath, lineRef? }
+  createdAt    DateTime     @default(now())
+
+  @@index([projectId])
+}
+
+model ChatSession {
+  id        String    @id @default(uuid())
+  projectId String
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  messages  Message[]
+
+  @@index([projectId])
+  @@index([userId])
+}
+
+model Message {
+  id        String      @id @default(uuid())
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      MessageRole
+  content   String
+  createdAt DateTime    @default(now())
+
+  @@index([sessionId])
+}
