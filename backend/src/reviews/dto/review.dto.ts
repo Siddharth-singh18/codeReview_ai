@@ -1,16 +1,18 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsArray } from 'class-validator';
-import { ReviewScope, TemplateType } from '@prisma/client';
+import { IsIn, IsNotEmpty, IsOptional, IsString, IsArray } from 'class-validator';
+
+export type ReviewScope = 'FILE' | 'MULTI_FILE' | 'PROJECT';
+export type TemplateType = 'SECURITY' | 'PERFORMANCE' | 'QUALITY';
 
 export class TriggerReviewDto {
   @IsString()
   @IsNotEmpty({ message: 'AI Provider configuration ID is required' })
   providerId: string;
 
-  @IsEnum(ReviewScope)
+  @IsIn(['FILE', 'MULTI_FILE', 'PROJECT'])
   @IsNotEmpty()
   scope: ReviewScope;
 
-  @IsEnum(TemplateType)
+  @IsIn(['SECURITY', 'PERFORMANCE', 'QUALITY'])
   @IsNotEmpty()
   templateType: TemplateType;
 

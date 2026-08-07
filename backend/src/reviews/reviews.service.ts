@@ -14,10 +14,8 @@ export class ReviewsService {
   ) {}
 
   async triggerReview(userId: string, projectId: string, dto: TriggerReviewDto) {
-    // 1. Verify project ownership
     await this.projectsService.findOne(userId, projectId);
 
-    // 2. Fetch files based on review scope
     let files: { id: string; path: string; content: string; language: string }[] = [];
 
     if (dto.scope === 'FILE' || dto.scope === 'MULTI_FILE') {
@@ -29,11 +27,10 @@ export class ReviewsService {
         select: { id: true, path: true, content: true, language: true },
       });
     } else {
-      // Whole project review
       files = await this.prisma.file.findMany({
         where: { projectId },
         select: { id: true, path: true, content: true, language: true },
-        take: 30, // Limit to top 30 files to fit context window sensibly
+        take: 30,
       });
     }
 
@@ -41,10 +38,7 @@ export class ReviewsService {
       throw new BadRequestException('No source files found for review');
     }
 
-    // 3. Obtain polymorphic AI provider instance
     const provider = await this.aiProvidersService.getProviderInstance(userId, dto.providerId);
-
-    // 4. Build prompt and invoke completion
     const systemPrompt = buildReviewSystemPrompt(dto.templateType);
     const userPrompt = buildReviewUserPrompt(files, dto.scope);
 
@@ -56,10 +50,8 @@ export class ReviewsService {
       { temperature: 0.2, responseFormatJson: true },
     );
 
-    // 5. Parse and validate structured output defensively
     const parsedResult = this.parseReviewOutput(response.content, files[0].path);
 
-    // 6. Persist Review record in DB
     const review = await this.prisma.review.create({
       data: {
         projectId,
@@ -110,9 +102,18 @@ export class ReviewsService {
     };
   }
 
+  async remove(userId: string, id: string) {
+    await this.findOne(userId, id);
+
+    await this.prisma.review.delete({
+      where: { id },
+    });
+
+    return { message: 'Review history entry deleted successfully' };
+  }
+
   private parseReviewOutput(rawContent: string, defaultFilePath: string): ReviewResult {
     try {
-      // Clean potential markdown code blocks like ```json ... ```
       let cleaned = rawContent.trim();
       if (cleaned.startsWith('```')) {
         cleaned = cleaned.replace(/^```[a-z]*\n?/, '').replace(/\n?```$/, '');
@@ -136,7 +137,6 @@ export class ReviewsService {
 
       return { summary, issues };
     } catch {
-      // Fallback object if JSON parsing fails unexpectedly
       return {
         summary: 'Review generated (Raw format parsing fallback active).',
         issues: [

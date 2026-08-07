@@ -10,6 +10,7 @@ import { ZipUploadZone } from '@/features/files/components/ZipUploadZone';
 import { Review } from '@/features/reviews/types';
 import { ReviewTriggerPanel } from '@/features/reviews/components/ReviewTriggerPanel';
 import { IssueCard } from '@/features/reviews/components/IssueCard';
+import { ReviewHistoryList } from '@/features/reviews/components/ReviewHistoryList';
 import { apiRequest } from '@/lib/api';
 import Link from 'next/link';
 
@@ -27,9 +28,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [loadingFile, setLoadingFile] = useState(false);
   const [mobileTreeOpen, setMobileTreeOpen] = useState(false);
 
-  // Review states
+  // Review & Review History states
   const [reviews, setReviews] = useState<Review[]>([]);
   const [activeReview, setActiveReview] = useState<Review | null>(null);
+  const [filterTemplate, setFilterTemplate] = useState<string>('ALL');
 
   useEffect(() => {
     fetchProject();
@@ -106,6 +108,17 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const handleReviewCreated = (review: Review) => {
     setReviews((prev) => [review, ...prev]);
     setActiveReview(review);
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    await apiRequest(`/reviews/${reviewId}`, { method: 'DELETE' });
+    setReviews((prev) => {
+      const updated = prev.filter((r) => r.id !== reviewId);
+      if (activeReview?.id === reviewId) {
+        setActiveReview(updated.length > 0 ? updated[0] : null);
+      }
+      return updated;
+    });
   };
 
   if (loading) {
@@ -259,56 +272,72 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               onReviewCreated={handleReviewCreated}
             />
 
-            {/* Active Review View */}
-            {activeReview ? (
-              <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-6">
-                <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span className="px-2.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-wider border border-cyan-500/30">
-                        {activeReview.templateType} AUDIT
-                      </span>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column: Historical Review List */}
+              <div className="lg:col-span-1">
+                <ReviewHistoryList
+                  reviews={reviews}
+                  activeReviewId={activeReview?.id}
+                  onSelectReview={(r) => setActiveReview(r)}
+                  onDeleteReview={handleDeleteReview}
+                  filterTemplate={filterTemplate}
+                  onFilterChange={(t) => setFilterTemplate(t)}
+                />
+              </div>
+
+              {/* Right Column: Active Selected Review Details */}
+              <div className="lg:col-span-2">
+                {activeReview ? (
+                  <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-6">
+                    <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="px-2.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-wider border border-cyan-500/30">
+                            {activeReview.templateType} AUDIT
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            Scope: <strong className="text-slate-300">{activeReview.scope}</strong>
+                          </span>
+                        </div>
+                        <h2 className="text-lg font-bold text-white mt-1">Review Report Summary</h2>
+                      </div>
                       <span className="text-xs text-slate-500">
-                        Scope: <strong className="text-slate-300">{activeReview.scope}</strong>
+                        {new Date(activeReview.createdAt).toLocaleString()}
                       </span>
                     </div>
-                    <h2 className="text-lg font-bold text-white mt-1">Review Report Summary</h2>
+
+                    <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
+                      {activeReview.summary}
+                    </p>
+
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-semibold text-white flex items-center justify-between">
+                        <span>Detected Vulnerabilities & Issues</span>
+                        <span className="text-xs text-slate-400 font-normal">
+                          ({activeReview.issues.length} findings)
+                        </span>
+                      </h3>
+
+                      {activeReview.issues.length === 0 ? (
+                        <div className="p-8 text-center text-xs text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800">
+                          🎉 No flaws or issues detected for this audit template!
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {activeReview.issues.map((issue, idx) => (
+                            <IssueCard key={idx} issue={issue} />
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-xs text-slate-500">
-                    {new Date(activeReview.createdAt).toLocaleString()}
-                  </span>
-                </div>
-
-                <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
-                  {activeReview.summary}
-                </p>
-
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-white flex items-center justify-between">
-                    <span>Detected Vulnerabilities & Issues</span>
-                    <span className="text-xs text-slate-400 font-normal">
-                      ({activeReview.issues.length} findings)
-                    </span>
-                  </h3>
-
-                  {activeReview.issues.length === 0 ? (
-                    <div className="p-8 text-center text-xs text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800">
-                      🎉 No flaws or issues detected for this audit template!
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {activeReview.issues.map((issue, idx) => (
-                        <IssueCard key={idx} issue={issue} />
-                      ))}
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <div className="glass-panel p-12 text-center text-xs text-slate-500 rounded-2xl border border-slate-800 h-full flex items-center justify-center">
+                    No review executed or selected yet. Select options above to run your automated AI review.
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="glass-panel p-12 text-center text-xs text-slate-500 rounded-2xl border border-slate-800">
-                No review executed yet. Select options above to run your first automated AI review.
-              </div>
-            )}
+            </div>
           </div>
         )}
 

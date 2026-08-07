@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Delete } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { TriggerReviewDto } from './dto/review.dto';
 import { User } from '../auth/decorators/user.decorator';
@@ -27,5 +27,10 @@ export class ReviewsController {
   @Get('reviews/:id')
   async findOne(@User('userId') userId: string, @Param('id') id: string) {
     return this.reviewsService.findOne(userId, id);
+  }
+
+  @Delete('reviews/:id')
+  async remove(@User('userId') userId: string, @Param('id') id: string) {
+    return this.reviewsService.remove(userId, id);
   }
 }

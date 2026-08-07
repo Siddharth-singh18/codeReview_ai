@@ -5,8 +5,9 @@ import { PrismaPg } from '@prisma/adapter-pg';
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
-    const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/ai_code_review_db?schema=public';
-    const adapter = new PrismaPg({ connectionString });
+    const adapter = new PrismaPg({
+      connectionString: process.env.DATABASE_URL || 'postgresql://postgres:admin@localhost:5432/ai_code_review_db?schema=public',
+    });
     super({ adapter });
   }
 

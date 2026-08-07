@@ -1,5 +1,6 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
-import { ProviderType } from '@prisma/client';
+import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+export type ProviderType = 'OPENAI' | 'LM_STUDIO' | 'OLLAMA' | 'OPENROUTER' | 'GENERIC';
 
 export class CreateAIProviderConfigDto {
   @IsString()
@@ -18,7 +19,7 @@ export class CreateAIProviderConfigDto {
   @IsNotEmpty({ message: 'Model name is required' })
   modelName: string;
 
-  @IsEnum(ProviderType)
+  @IsIn(['OPENAI', 'LM_STUDIO', 'OLLAMA', 'OPENROUTER', 'GENERIC'])
   @IsOptional()
   providerType?: ProviderType;
 }
@@ -40,7 +41,7 @@ export class UpdateAIProviderConfigDto {
   @IsOptional()
   modelName?: string;
 
-  @IsEnum(ProviderType)
+  @IsIn(['OPENAI', 'LM_STUDIO', 'OLLAMA', 'OPENROUTER', 'GENERIC'])
   @IsOptional()
   providerType?: ProviderType;
 }
