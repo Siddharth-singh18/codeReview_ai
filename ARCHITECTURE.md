@@ -1,37 +1,69 @@
-# System Architecture — AI Code Review Assistant
+# 🏗️ Architecture & Technical Design Document
 
-## Overview
+## System Overview
 
-The system is designed as a clean monorepo separating the NestJS API server and Next.js App Router client application.
+The **AI Code Review Assistant** is architected as a layered monorepo comprising a NestJS backend REST API and a Next.js 16 frontend app.
 
 ```
-ai_code_review_assistant/
-├── backend/            # NestJS Application
-│   ├── prisma/         # Schema & DB Migrations
-│   └── src/            # Layered Modules (auth, users, projects, files, ai-providers, reviews, chat)
-└── frontend/           # Next.js App Router Application
-    ├── src/app/        # Page routes
-    ├── src/components/ # Shared UI components
-    ├── src/features/   # Feature-scoped hooks, components, and types
-    └── src/lib/        # Centralized API client & utils
+┌─────────────────────────────────────────────────────────────┐
+│                   Next.js 16 Client (App)                   │
+│  (Shiki Syntax Engine, Glassmorphic UI, Feature Modules)    │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ REST API / JWT
+┌──────────────────────────────▼──────────────────────────────┐
+│                    NestJS Backend API                       │
+│  ┌──────────────┬──────────────┬──────────────┬──────────┐ │
+│  │ AuthModule   │ProjectsModule│ReviewsModule │ChatModule│ │
+│  ├──────────────┼──────────────┼──────────────┼──────────┤ │
+│  │AIProviders   │ ToolsModule  │ FilesModule  │Throttler │ │
+│  └──────────────┴──────────────┴──────────────┴──────────┘ │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ Prisma ORM
+┌──────────────────────────────▼──────────────────────────────┐
+│                    PostgreSQL Database                      │
+│   (User, Project, File, AIProviderConfig, Review, Chat)     │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Backend Modular Layering
+---
 
-Each domain follows strict NestJS module boundaries (`module -> controller -> service -> repository/Prisma`):
+## 🏛️ Layered Modular Architecture
 
-1. **Auth Module**: Registration, login, JWT issuance, and request validation.
-2. **Projects Module**: User-scoped project CRUD operations.
-3. **Files Module**: Multipart repository uploads, zip unpacking (`adm-zip`), tree generation, and content storage.
-4. **AI Providers Module**: Provider configuration CRUD with AES-256 encrypted API key storage and runtime polymorphic provider adapter dispatching.
-5. **Reviews Module**: Structured prompt orchestration (Security, Performance, Quality), response JSON validation, and history persistence.
-6. **Chat Module**: Contextual retrieval over uploaded codebase files and session chat.
+### 1. Data Scoping & Security
+- **Strict Tenant Isolation**: All endpoints verify user ownership via NestJS `JwtAuthGuard` and `@User('userId')` decorator. Database queries include `where: { userId }` or relational project checks to prevent unauthorized access.
+- **AES-256 Key Encryption**: AI Provider credentials (e.g. OpenAI API keys) are encrypted using AES-256-CTR before saving to PostgreSQL and decrypted only in memory when constructing HTTP client instances.
 
-## Database Schema Model (Prisma)
+### 2. AI Provider Abstraction
+The system utilizes a polymorphic Strategy Pattern for AI Providers:
+- **Base Interface**: `AIProvider` defining `.complete(messages, options)`.
+- **Implementations**:
+  - `OpenAIProvider` — OpenAI API integration.
+  - `OllamaProvider` — Local Ollama LLM endpoint.
+  - `LMStudioProvider` — Local LM Studio instance.
+  - `OpenRouterProvider` — OpenRouter multi-model gateway.
+  - `GenericOpenAIProvider` — Standard v1/chat/completions compatible endpoints.
 
-- **User**: Authentication credentials.
-- **Project**: Owned by User; groups files, reviews, and chat sessions.
-- **File**: Unpacked codebase files linked to Project.
-- **AIProviderConfig**: User-owned provider connection info (encrypted key, base URL, model name).
-- **Review**: Persisted structured JSON AI review outputs.
-- **ChatSession & Message**: Persisted interaction history.
+### 3. Review & Defensive Parsing Pipeline
+```
+[Trigger Review Request] 
+      │
+      ▼
+[Gather Target File Contents] 
+      │
+      ▼
+[Assemble System Prompt Template (Security / Performance / Quality)]
+      │
+      ▼
+[Invoke AI Provider Strategy]
+      │
+      ▼
+[Defensive JSON Sanitization & Parsing]
+      │ (Fallback to unstructured block if parsing fails)
+      ▼
+[Persist Review Record in DB] ──► [Return Structured Report JSON to UI]
+```
+
+### 4. Code Chat & Context Retrieval
+- When a user sends a message in Code Chat, the system retrieves up to 20 codebase files for the project.
+- Files are bundled into the System Prompt as grounded codebase context (`--- FILE: path ---`).
+- History array is passed to allow multi-turn conversational pair programming.
