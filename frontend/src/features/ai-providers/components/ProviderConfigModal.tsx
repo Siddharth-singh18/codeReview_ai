@@ -31,6 +31,9 @@ export function ProviderConfigModal({ isOpen, onClose, onSubmit }: ProviderConfi
     if (type === 'OPENAI') {
       setBaseUrl('https://api.openai.com/v1');
       setModelName('gpt-4o-mini');
+    } else if (type === 'GROQ' as any) {
+      setBaseUrl('https://api.groq.com/openai/v1');
+      setModelName('llama-3.3-70b-versatile');
     } else if (type === 'LM_STUDIO') {
       setBaseUrl('http://localhost:1234/v1');
       setModelName('local-model');
@@ -80,7 +83,7 @@ export function ProviderConfigModal({ isOpen, onClose, onSubmit }: ProviderConfi
           <div className="space-y-1">
             <label className="text-xs font-medium text-slate-300">Preset Provider Type</label>
             <div className="grid grid-cols-3 gap-2">
-              {(['OPENAI', 'LM_STUDIO', 'OLLAMA', 'OPENROUTER', 'GENERIC'] as ProviderType[]).map((type) => (
+              {(['OPENAI', 'GROQ', 'LM_STUDIO', 'OLLAMA', 'OPENROUTER', 'GENERIC'] as ProviderType[]).map((type) => (
                 <button
                   key={type}
                   type="button"
