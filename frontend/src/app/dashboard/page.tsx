@@ -40,6 +40,10 @@ export default function DashboardPage() {
     setProjects((prev) => prev.filter((p) => p.id !== id));
   };
 
+  const totalFiles = projects.reduce((acc, p) => acc + (p._count?.files || 0), 0);
+  const totalReviews = projects.reduce((acc, p) => acc + (p._count?.reviews || 0), 0);
+  const totalChats = projects.reduce((acc, p) => acc + (p._count?.chatSessions || 0), 0);
+
   return (
     <div className="min-h-screen flex flex-col">
       <NavigationBar />
@@ -58,6 +62,49 @@ export default function DashboardPage() {
             <span>+</span>
             <span>New Project</span>
           </button>
+        </div>
+
+        {/* Global Statistics Banner */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center space-x-4">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-lg">
+              📁
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider block">Total Projects</span>
+              <span className="text-xl font-bold text-white">{projects.length}</span>
+            </div>
+          </div>
+
+          <div className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center space-x-4">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-lg">
+              📄
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider block">Files Indexed</span>
+              <span className="text-xl font-bold text-white">{totalFiles}</span>
+            </div>
+          </div>
+
+          <div className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center space-x-4">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-lg">
+              ⚡
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider block">AI Reviews Completed</span>
+              <span className="text-xl font-bold text-white">{totalReviews}</span>
+            </div>
+          </div>
+
+          <div className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center space-x-4">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">
+              💬
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider block">Chat Conversations</span>
+              <span className="text-xl font-bold text-white">{totalChats}</span>
+            </div>
+          </div>
         </div>
 
         {loading ? (

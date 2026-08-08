@@ -11,6 +11,7 @@ import { Review } from '@/features/reviews/types';
 import { ReviewTriggerPanel } from '@/features/reviews/components/ReviewTriggerPanel';
 import { IssueCard } from '@/features/reviews/components/IssueCard';
 import { ReviewHistoryList } from '@/features/reviews/components/ReviewHistoryList';
+import { ExportReportButton } from '@/features/reviews/components/ExportReportButton';
 import { CodeChatView } from '@/features/chat/components/CodeChatView';
 import { DocGeneratorModal } from '@/features/tools/components/DocGeneratorModal';
 import { TechDebtScannerModal } from '@/features/tools/components/TechDebtScannerModal';
@@ -325,9 +326,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         </div>
                         <h2 className="text-lg font-bold text-white mt-1">Review Report Summary</h2>
                       </div>
-                      <span className="text-xs text-slate-500">
-                        {new Date(activeReview.createdAt).toLocaleString()}
-                      </span>
+                      
+                      <div className="flex items-center space-x-3">
+                        <span className="text-xs text-slate-500">
+                          {new Date(activeReview.createdAt).toLocaleString()}
+                        </span>
+                        <ExportReportButton review={activeReview} projectName={project.name} />
+                      </div>
                     </div>
 
                     <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/60 p-4 rounded-xl border border-slate-800/80">
