@@ -17,7 +17,7 @@ export class ToolsService {
     const files = await this.prisma.file.findMany({
       where: { projectId },
       select: { path: true, content: true, language: true },
-      take: 25,
+      take: 8,
     });
 
     if (files.length === 0) {
@@ -27,23 +27,18 @@ export class ToolsService {
     const provider = await this.aiProvidersService.getProviderInstance(userId, providerId);
 
     const codebaseContext = files
-      .map((f) => `--- FILE: ${f.path} (${f.language}) ---\n${f.content.slice(0, 2500)}\n--- END FILE ---`)
+      .map((f) => `--- FILE: ${f.path} ---\n${f.content.slice(0, 1000)}\n--- END FILE ---`)
       .join('\n\n');
 
     const response = await provider.complete(
       [
         {
           role: 'system',
-          content: `You are an expert AI Coding Assistant and Technical Documentation Writer. Your job is to analyze source code and write developer documentation (README.md).
-Analyze the provided codebase files and generate comprehensive Markdown documentation.
-Include:
-1. Executive Architecture Overview
-2. Core Modules & Responsibilities
-3. Setup & Running Instructions`,
+          content: 'You are a helpful software documentation assistant. Write a short README.md overview for the provided code files.',
         },
         {
           role: 'user',
-          content: `Generate complete README documentation for project "${project.name}":\n\n${codebaseContext}`,
+          content: `Write a README overview for project "${project.name}":\n\n${codebaseContext}`,
         },
       ],
       { temperature: 0.2 },
