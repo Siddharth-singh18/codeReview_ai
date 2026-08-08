@@ -1,6 +1,6 @@
 import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export type ProviderType = 'OPENAI' | 'LM_STUDIO' | 'OLLAMA' | 'OPENROUTER' | 'GENERIC';
+export type ProviderType = 'OPENAI' | 'GROQ' | 'LM_STUDIO' | 'OLLAMA' | 'OPENROUTER' | 'GENERIC';
 
 export class CreateAIProviderConfigDto {
   @IsString()
@@ -19,7 +19,7 @@ export class CreateAIProviderConfigDto {
   @IsNotEmpty({ message: 'Model name is required' })
   modelName: string;
 
-  @IsIn(['OPENAI', 'LM_STUDIO', 'OLLAMA', 'OPENROUTER', 'GENERIC'])
+  @IsIn(['OPENAI', 'GROQ', 'LM_STUDIO', 'OLLAMA', 'OPENROUTER', 'GENERIC'])
   @IsOptional()
   providerType?: ProviderType;
 }
@@ -41,7 +41,7 @@ export class UpdateAIProviderConfigDto {
   @IsOptional()
   modelName?: string;
 
-  @IsIn(['OPENAI', 'LM_STUDIO', 'OLLAMA', 'OPENROUTER', 'GENERIC'])
+  @IsIn(['OPENAI', 'GROQ', 'LM_STUDIO', 'OLLAMA', 'OPENROUTER', 'GENERIC'])
   @IsOptional()
   providerType?: ProviderType;
 }

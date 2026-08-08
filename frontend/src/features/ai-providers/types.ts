@@ -1,4 +1,4 @@
-export type ProviderType = 'OPENAI' | 'LM_STUDIO' | 'OLLAMA' | 'OPENROUTER' | 'GENERIC';
+export type ProviderType = 'OPENAI' | 'GROQ' | 'LM_STUDIO' | 'OLLAMA' | 'OPENROUTER' | 'GENERIC';
 
 export interface AIProviderConfig {
   id: string;

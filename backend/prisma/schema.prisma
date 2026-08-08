@@ -11,6 +11,7 @@ datasource db {
 
 enum ProviderType {
   OPENAI
+  GROQ
   LM_STUDIO
   OLLAMA
   OPENROUTER
