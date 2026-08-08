@@ -34,13 +34,12 @@ export class ToolsService {
       [
         {
           role: 'system',
-          content: `You are a Technical Documentation Writer. Generate comprehensive, production-ready Markdown documentation (README.md style) for the codebase.
+          content: `You are an expert AI Coding Assistant and Technical Documentation Writer. Your job is to analyze source code and write developer documentation (README.md).
+Analyze the provided codebase files and generate comprehensive Markdown documentation.
 Include:
 1. Executive Architecture Overview
 2. Core Modules & Responsibilities
-3. API Endpoints & Interfaces
-4. Setup & Running Instructions
-5. Key Data Models`,
+3. Setup & Running Instructions`,
         },
         {
           role: 'user',
@@ -50,9 +49,17 @@ Include:
       { temperature: 0.2 },
     );
 
+    let docs = response.content;
+    try {
+      const parsed = JSON.parse(docs);
+      if (parsed.response) docs = parsed.response;
+      else if (parsed.content) docs = parsed.content;
+      else if (parsed.markdownDocs) docs = parsed.markdownDocs;
+    } catch {}
+
     return {
       projectName: project.name,
-      markdownDocs: response.content,
+      markdownDocs: docs,
     };
   }
 

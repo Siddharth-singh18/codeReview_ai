@@ -25,7 +25,7 @@ export class OpenAICompatibleProvider implements AIProvider {
       body.max_tokens = options.maxTokens;
     }
 
-    if (options.responseFormatJson) {
+    if (options.responseFormatJson && !this.config.baseUrl.includes('11434')) {
       body.response_format = { type: 'json_object' };
     }
 
