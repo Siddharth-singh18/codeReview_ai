@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ai-code-review-backend
+    env: node
+    buildCommand: npm install && npx prisma db push && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
