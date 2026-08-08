@@ -47,7 +47,7 @@ export function buildReviewUserPrompt(
 ): string {
   const formattedFiles = files
     .map(
-      (f) => `--- START FILE: ${f.path} (${f.language}) ---\n${f.content}\n--- END FILE: ${f.path} ---`
+      (f) => `--- START FILE: ${f.path} (${f.language}) ---\n${f.content.slice(0, 1200)}\n--- END FILE: ${f.path} ---`
     )
     .join('\n\n');
 

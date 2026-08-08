@@ -30,7 +30,7 @@ export class ReviewsService {
       files = await this.prisma.file.findMany({
         where: { projectId },
         select: { id: true, path: true, content: true, language: true },
-        take: 30,
+        take: 8,
       });
     }
 
