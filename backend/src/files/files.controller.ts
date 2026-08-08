@@ -6,6 +6,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Body,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FilesService } from './files.service';
@@ -26,6 +27,18 @@ export class FilesController {
       throw new BadRequestException('Please provide a repository zip file');
     }
     return this.filesService.processZipUpload(userId, projectId, file);
+  }
+
+  @Post('projects/:projectId/import-github')
+  async importGithub(
+    @User('userId') userId: string,
+    @Param('projectId') projectId: string,
+    @Body() body: { githubUrl: string },
+  ) {
+    if (!body.githubUrl) {
+      throw new BadRequestException('Please provide a valid GitHub repository URL');
+    }
+    return this.filesService.processGithubImport(userId, projectId, body.githubUrl);
   }
 
   @Get('projects/:projectId/tree')

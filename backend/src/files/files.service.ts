@@ -99,6 +99,52 @@ export class FilesService {
     };
   }
 
+  async processGithubImport(userId: string, projectId: string, githubUrl: string) {
+    await this.projectsService.findOne(userId, projectId);
+
+    const match = githubUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (!match) {
+      throw new BadRequestException('Invalid GitHub URL format. Example: https://github.com/owner/repo');
+    }
+
+    const owner = match[1];
+    const repo = match[2].replace(/\.git$/, '');
+
+    const zipUrl = `https://codeload.github.com/${owner}/${repo}/zip/refs/heads/main`;
+    const fallbackZipUrl = `https://codeload.github.com/${owner}/${repo}/zip/refs/heads/master`;
+
+    let buffer: Buffer;
+    try {
+      const response = await fetch(zipUrl);
+      if (response.ok) {
+        buffer = Buffer.from(await response.arrayBuffer());
+      } else {
+        const fallbackRes = await fetch(fallbackZipUrl);
+        if (!fallbackRes.ok) {
+          throw new BadRequestException(`Failed to download repository zip archive from GitHub for ${owner}/${repo}`);
+        }
+        buffer = Buffer.from(await fallbackRes.arrayBuffer());
+      }
+    } catch (err: any) {
+      throw new BadRequestException(err.message || 'Failed to fetch repository from GitHub');
+    }
+
+    const fakeFile: Express.Multer.File = {
+      fieldname: 'file',
+      originalname: `${repo}.zip`,
+      encoding: '7bit',
+      mimetype: 'application/zip',
+      buffer,
+      size: buffer.length,
+      stream: null as any,
+      destination: '',
+      filename: '',
+      path: '',
+    };
+
+    return this.processZipUpload(userId, projectId, fakeFile);
+  }
+
   async getFileTree(userId: string, projectId: string): Promise<FileTreeNode[]> {
     await this.projectsService.findOne(userId, projectId);
 
