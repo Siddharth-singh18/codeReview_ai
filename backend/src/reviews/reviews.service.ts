@@ -42,30 +42,35 @@ export class ReviewsService {
     const systemPrompt = buildReviewSystemPrompt(dto.templateType);
     const userPrompt = buildReviewUserPrompt(files, dto.scope);
 
-    const response = await provider.complete(
-      [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      { temperature: 0.2, responseFormatJson: true },
-    );
+    try {
+      const response = await provider.complete(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        { temperature: 0.2, responseFormatJson: true },
+      );
 
-    const parsedResult = this.parseReviewOutput(response.content, files[0].path);
+      const parsedResult = this.parseReviewOutput(response.content, files[0].path);
 
-    const review = await this.prisma.review.create({
-      data: {
-        projectId,
-        scope: dto.scope,
-        templateType: dto.templateType,
-        summary: parsedResult.summary,
-        issues: JSON.stringify(parsedResult.issues),
-      },
-    });
+      const review = await this.prisma.review.create({
+        data: {
+          projectId,
+          scope: dto.scope,
+          templateType: dto.templateType,
+          summary: parsedResult.summary,
+          issues: JSON.stringify(parsedResult.issues),
+        },
+      });
 
-    return {
-      ...review,
-      issues: parsedResult.issues,
-    };
+      return {
+        ...review,
+        issues: parsedResult.issues,
+      };
+    } catch (err: any) {
+      console.error('Review generation failed:', err);
+      throw new BadRequestException(err.message || 'AI Review generation failed');
+    }
   }
 
   async findByProject(userId: string, projectId: string) {
