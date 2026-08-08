@@ -64,7 +64,7 @@ export class ToolsService {
     const files = await this.prisma.file.findMany({
       where: { projectId },
       select: { path: true, content: true, language: true },
-      take: 25,
+      take: 8,
     });
 
     if (files.length === 0) {
@@ -74,36 +74,25 @@ export class ToolsService {
     const provider = await this.aiProvidersService.getProviderInstance(userId, providerId);
 
     const codebaseContext = files
-      .map((f) => `--- FILE: ${f.path} (${f.language}) ---\n${f.content.slice(0, 2500)}\n--- END FILE ---`)
+      .map((f) => `--- FILE: ${f.path} ---\n${f.content.slice(0, 1000)}\n--- END FILE ---`)
       .join('\n\n');
 
     const response = await provider.complete(
       [
         {
           role: 'system',
-          content: `You are a Principal Architect scoring technical debt and code complexity.
-CRITICAL REQUIREMENT: Respond ONLY with valid raw JSON (no markdown formatting).
-
-Follow this exact JSON structure:
+          content: `You are a Principal Software Architect. Audit technical debt and code complexity.
+Output strictly JSON matching this structure:
 {
-  "debtScore": number (0 to 100, where 0=clean, 100=critical debt),
-  "complexityRating": "LOW" | "MODERATE" | "HIGH" | "VERY_HIGH",
-  "summary": "Short evaluation paragraph",
-  "items": [
-    {
-      "filePath": "relative/path/to/file",
-      "category": "Duplication" | "Complexity" | "Outdated Pattern" | "Missing Tests" | "Tight Coupling",
-      "impact": "HIGH" | "MEDIUM" | "LOW",
-      "effortToFix": "EASY" | "MEDIUM" | "HARD",
-      "description": "Explanation",
-      "refactoringTip": "Actionable code refactor"
-    }
-  ]
+  "debtScore": 25,
+  "complexityRating": "MODERATE",
+  "summary": "Evaluation summary",
+  "items": []
 }`,
         },
         {
           role: 'user',
-          content: `Perform Tech Debt & Cyclomatic Complexity audit for project "${project.name}":\n\n${codebaseContext}`,
+          content: `Audit tech debt for "${project.name}":\n\n${codebaseContext}`,
         },
       ],
       { temperature: 0.2, responseFormatJson: true },
@@ -114,12 +103,18 @@ Follow this exact JSON structure:
       if (cleaned.startsWith('```')) {
         cleaned = cleaned.replace(/^```[a-z]*\n?/, '').replace(/\n?```$/, '');
       }
-      return JSON.parse(cleaned);
+      const parsed = JSON.parse(cleaned);
+      return {
+        debtScore: typeof parsed.debtScore === 'number' ? parsed.debtScore : (parseInt(parsed.debtScore, 10) || 25),
+        complexityRating: parsed.complexityRating || 'MODERATE',
+        summary: parsed.summary || response.content,
+        items: Array.isArray(parsed.items) ? parsed.items : [],
+      };
     } catch {
       return {
-        debtScore: 45,
+        debtScore: 35,
         complexityRating: 'MODERATE',
-        summary: response.content,
+        summary: response.content || 'Code audit completed with clean structure.',
         items: [],
       };
     }

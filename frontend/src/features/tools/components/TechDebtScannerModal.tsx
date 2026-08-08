@@ -135,7 +135,9 @@ export function TechDebtScannerModal({ isOpen, onClose, projectId }: TechDebtSca
                 <div className="glass-card p-4 rounded-xl border border-slate-800 flex items-center justify-between">
                   <div>
                     <span className="text-[11px] text-slate-400 font-medium">Tech Debt Score</span>
-                    <h3 className="text-2xl font-bold text-white mt-0.5">{report.debtScore} / 100</h3>
+                    <h3 className="text-2xl font-bold text-white mt-0.5">
+                      {typeof report.debtScore === 'number' ? report.debtScore : (report.debtScore || 0)} / 100
+                    </h3>
                   </div>
                   <div
                     className={`w-12 h-12 rounded-full border-2 flex items-center justify-center font-bold text-xs ${
