@@ -170,27 +170,35 @@ export function TechDebtScannerModal({ isOpen, onClose, projectId }: TechDebtSca
                 <h4 className="text-xs font-semibold text-white uppercase tracking-wider">
                   Prioritized Refactoring Opportunities ({report.items?.length || 0})
                 </h4>
-                {report.items?.map((item, idx) => (
-                  <div key={idx} className="glass-card p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-cyan-400 font-semibold">{item.filePath}</span>
-                      <div className="flex items-center space-x-2">
-                        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">
-                          {item.category}
-                        </span>
-                        <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[10px] uppercase font-bold">
-                          Fix: {item.effortToFix}
-                        </span>
+                {report.items?.map((item: any, idx: number) => {
+                  const filePath = item.filePath || item.file_path || item.file || 'General File';
+                  const category = item.category || 'Refactoring';
+                  const effortToFix = item.effortToFix || item.effort_to_fix || item.effort || 'MEDIUM';
+                  const description = item.description || item.reason || item.issue || 'Optimization recommended';
+                  const refactoringTip = item.refactoringTip || item.refactoring_tip || item.tip || item.recommendation;
+
+                  return (
+                    <div key={idx} className="glass-card p-3 rounded-xl border border-white/[0.08] space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-cyan-400 font-semibold">{filePath}</span>
+                        <div className="flex items-center space-x-2">
+                          <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">
+                            {category}
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[10px] uppercase font-bold">
+                            Fix: {effortToFix}
+                          </span>
+                        </div>
                       </div>
+                      <p className="text-slate-300 leading-relaxed">{description}</p>
+                      {refactoringTip && (
+                        <div className="p-2 rounded-lg bg-[#070913] border border-white/[0.08] text-slate-300 font-mono text-[11px] leading-relaxed">
+                          💡 {refactoringTip}
+                        </div>
+                      )}
                     </div>
-                    <p className="text-slate-300">{item.description}</p>
-                    {item.refactoringTip && (
-                      <div className="p-2 rounded-lg bg-[#0d1117] border border-slate-800 text-slate-400 font-mono text-[11px]">
-                        💡 {item.refactoringTip}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (
