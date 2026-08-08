@@ -1,13 +1,11 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
 export async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit & { isFormData?: boolean } = {}
 ): Promise<T> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
 
@@ -15,21 +13,19 @@ export async function apiRequest<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  if (!options.isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const response = await fetch(`${baseUrl}${endpoint}`, {
     ...options,
     headers,
   });
 
-  const data = await response.json().catch(() => ({}));
-
   if (!response.ok) {
-    const errorMsg = data?.message
-      ? Array.isArray(data.message)
-        ? data.message.join(', ')
-        : data.message
-      : 'An unexpected error occurred';
-    throw new Error(errorMsg);
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
   }
 
-  return data as T;
+  return response.json();
 }

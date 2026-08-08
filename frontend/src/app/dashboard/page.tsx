@@ -6,6 +6,8 @@ import { Project } from '@/features/projects/types';
 import { ProjectCard } from '@/features/projects/components/ProjectCard';
 import { CreateProjectModal } from '@/features/projects/components/CreateProjectModal';
 import { apiRequest } from '@/lib/api';
+import { motion } from 'framer-motion';
+import { FolderPlus, FileCode2, ShieldAlert, MessagesSquare, Sparkles, Plus } from 'lucide-react';
 
 export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -44,95 +46,152 @@ export default function DashboardPage() {
   const totalReviews = projects.reduce((acc, p) => acc + (p._count?.reviews || 0), 0);
   const totalChats = projects.reduce((acc, p) => acc + (p._count?.chatSessions || 0), 0);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <NavigationBar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Page Title Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Projects Dashboard</h1>
-            <p className="text-sm text-slate-400">Manage and run AI reviews across your repositories</p>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+              Workspace Overview
+              <Sparkles className="w-5 h-5 text-cyan-400 animate-pulse" />
+            </h1>
+            <p className="text-sm text-slate-400 mt-1">
+              Manage your repositories, trigger automated security audits, and interact with codebase AI.
+            </p>
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-xs transition shadow-lg shadow-cyan-500/20 flex items-center space-x-2 w-fit cursor-pointer"
+            className="px-5 py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 hover:from-cyan-400 hover:to-violet-500 text-white font-medium text-xs transition shadow-lg shadow-cyan-500/25 flex items-center space-x-2 w-fit cursor-pointer"
           >
-            <span>+</span>
-            <span>New Project</span>
-          </button>
+            <Plus className="w-4 h-4" />
+            <span>New Project Workspace</span>
+          </motion.button>
         </div>
 
-        {/* Global Statistics Banner */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center space-x-4">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-lg">
-              📁
-            </div>
+        {/* Global Statistics Banner Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <motion.div
+            whileHover={{ y: -2 }}
+            className="glass-card p-5 rounded-2xl border border-white/[0.07] flex items-center justify-between"
+          >
             <div>
-              <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider block">Total Projects</span>
-              <span className="text-xl font-bold text-white">{projects.length}</span>
+              <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+                Total Projects
+              </span>
+              <span className="text-2xl font-black text-white mt-1 block">{projects.length}</span>
             </div>
-          </div>
+            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+              <FolderPlus className="w-6 h-6" />
+            </div>
+          </motion.div>
 
-          <div className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center space-x-4">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-lg">
-              📄
-            </div>
+          <motion.div
+            whileHover={{ y: -2 }}
+            className="glass-card p-5 rounded-2xl border border-white/[0.07] flex items-center justify-between"
+          >
             <div>
-              <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider block">Files Indexed</span>
-              <span className="text-xl font-bold text-white">{totalFiles}</span>
+              <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+                Files Indexed
+              </span>
+              <span className="text-2xl font-black text-white mt-1 block">{totalFiles}</span>
             </div>
-          </div>
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+              <FileCode2 className="w-6 h-6" />
+            </div>
+          </motion.div>
 
-          <div className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center space-x-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-lg">
-              ⚡
-            </div>
+          <motion.div
+            whileHover={{ y: -2 }}
+            className="glass-card p-5 rounded-2xl border border-white/[0.07] flex items-center justify-between"
+          >
             <div>
-              <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider block">AI Reviews Completed</span>
-              <span className="text-xl font-bold text-white">{totalReviews}</span>
+              <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+                Audits Completed
+              </span>
+              <span className="text-2xl font-black text-white mt-1 block">{totalReviews}</span>
             </div>
-          </div>
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+          </motion.div>
 
-          <div className="glass-card p-4 rounded-2xl border border-slate-800 flex items-center space-x-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg">
-              💬
-            </div>
+          <motion.div
+            whileHover={{ y: -2 }}
+            className="glass-card p-5 rounded-2xl border border-white/[0.07] flex items-center justify-between"
+          >
             <div>
-              <span className="text-[11px] text-slate-400 font-medium uppercase tracking-wider block">Chat Conversations</span>
-              <span className="text-xl font-bold text-white">{totalChats}</span>
+              <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+                Chat Conversations
+              </span>
+              <span className="text-2xl font-black text-white mt-1 block">{totalChats}</span>
             </div>
-          </div>
+            <div className="w-12 h-12 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+              <MessagesSquare className="w-6 h-6" />
+            </div>
+          </motion.div>
         </div>
 
+        {/* Projects Grid Section */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-44 glass-card rounded-2xl animate-pulse" />
+              <div key={i} className="h-52 glass-card rounded-2xl animate-pulse" />
             ))}
           </div>
         ) : projects.length === 0 ? (
-          <div className="glass-panel rounded-2xl p-12 text-center space-y-4 border border-slate-800">
-            <div className="text-4xl">🚀</div>
-            <h3 className="text-lg font-semibold text-white">No projects found</h3>
-            <p className="text-sm text-slate-400 max-w-md mx-auto">
-              Create your first project to upload code repositories, trigger automated AI code reviews, and interact via code chat.
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-panel rounded-3xl p-12 text-center space-y-4 border border-white/[0.08] max-w-xl mx-auto"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mx-auto">
+              <FolderPlus className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-white">No projects created yet</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Create your first project workspace to upload source repositories, trigger AI vulnerability reviews, and chat with codebase context.
             </p>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 text-xs font-medium transition cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/30 text-xs font-semibold transition cursor-pointer"
             >
-              Create Project
+              + Create First Workspace
             </button>
-          </div>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
             {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} onDelete={handleDeleteProject} />
+              <motion.div key={project.id} variants={itemVariants}>
+                <ProjectCard project={project} onDelete={handleDeleteProject} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </main>
 
