@@ -46,15 +46,15 @@ export class ChatService {
       },
     });
 
-    // 4. Fetch codebase context files
+    // 4. Fetch codebase context files (Optimized for Groq 12k TPM limit)
     const files = await this.prisma.file.findMany({
       where: { projectId },
       select: { path: true, content: true, language: true },
-      take: 20,
+      take: 6,
     });
 
     const codebaseContext = files
-      .map((f) => `--- FILE: ${f.path} (${f.language}) ---\n${f.content.slice(0, 3000)}\n--- END FILE ---`)
+      .map((f) => `--- FILE: ${f.path} (${f.language}) ---\n${f.content.slice(0, 1000)}\n--- END FILE ---`)
       .join('\n\n');
 
     const systemPrompt = `You are an expert AI Code Assistant pair programming with a developer.
@@ -76,25 +76,30 @@ ${codebaseContext || 'No files uploaded yet.'}
       { role: 'user', content: dto.message },
     ];
 
-    // 6. Invoke AI Provider completion
-    const provider = await this.aiProvidersService.getProviderInstance(userId, dto.providerId);
-    const aiResponse = await provider.complete(conversation, { temperature: 0.3 });
+    try {
+      // 6. Invoke AI Provider completion
+      const provider = await this.aiProvidersService.getProviderInstance(userId, dto.providerId);
+      const aiResponse = await provider.complete(conversation, { temperature: 0.3 });
 
-    // 7. Persist Assistant Message
-    const assistantMessage = await this.prisma.message.create({
-      data: {
+      // 7. Persist Assistant Message
+      const assistantMessage = await this.prisma.message.create({
+        data: {
+          sessionId: session.id,
+          role: 'ASSISTANT',
+          content: aiResponse.content,
+        },
+      });
+
+      return {
         sessionId: session.id,
-        role: 'ASSISTANT',
-        content: aiResponse.content,
-      },
-    });
-
-    return {
-      sessionId: session.id,
-      userMessage: dto.message,
-      assistantMessage: assistantMessage.content,
-      createdAt: assistantMessage.createdAt,
-    };
+        userMessage: dto.message,
+        assistantMessage: assistantMessage.content,
+        createdAt: assistantMessage.createdAt,
+      };
+    } catch (err: any) {
+      console.error('Chat completion error:', err);
+      throw new BadRequestException(err.message || 'Failed to complete chat message');
+    }
   }
 
   async getSessions(userId: string, projectId: string) {
