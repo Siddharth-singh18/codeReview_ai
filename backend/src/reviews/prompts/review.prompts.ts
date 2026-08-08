@@ -23,7 +23,7 @@ export function buildReviewSystemPrompt(templateType: TemplateType): string {
 
   return `${templateGuides[templateType]}
 
-CRITICAL REQUIREMENT: You MUST respond ONLY with a valid, raw JSON object (without markdown code blocks, quote escaping, or commentary).
+CRITICAL REQUIREMENT: You MUST respond ONLY with a valid, raw json object (without markdown code blocks, quote escaping, or commentary).
 
 The JSON object MUST follow this exact structure:
 {
